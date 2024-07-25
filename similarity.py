@@ -1,9 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cosine
 from dashscope import Generation
-
-
-
 #These two functions should run sequentially.
 def find_relevant_clips(clips, query_embedding, embed_text, threshold=0.4):
     relevant_clips = []

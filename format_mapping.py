@@ -1,6 +1,6 @@
 
 from dashscope import Generation
-api_key = 'sk-1fc2f2739d444a1690d390e9cfdd8b0c'
+api_key = 'YOUR_API_KEY'
 def format_maps(old_excel_value, old_doc_value, new_excel_value):
     prompt = (
         f"请根据\n'{old_excel_value}'到'{old_doc_value}'的格式变化逻辑"
