@@ -3,10 +3,10 @@ from typing import Dict, List, Tuple, Any
 from docx import Document
 from docx.shared import Pt, RGBColor
 from config import Config
-from funnels.extract import read_docx
-from funnels.excel_utils import excel_to_list
-from funnels.llm_provider import get_llm_provider
-from tqdm import tqdm
+from funnels.extract import read_docx  # Utility for extracting text from Word documents.
+from funnels.excel_utils import excel_to_list  # Utility for converting Excel data to a list.
+from funnels.llm_provider import get_llm_provider  # LLM integration for text updates.
+from tqdm import tqdm  # Progress bar utility for loops.
 
 logger = logging.getLogger(__name__)
 

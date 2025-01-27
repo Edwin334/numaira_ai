@@ -36,7 +36,21 @@ def main():
         
         # Update document with changes
         output_path = docx_path.replace('.docx', '_updated.docx')
-        update_document(docx_path, results, output_path)
+        changes_made = update_document(docx_path, results, output_path)
+        return {
+            "status": "success",
+            "data": {
+                "number_of_changes": changes_made,
+                "results": [
+                    {
+                        "original_text": orig,
+                        "modified_text": mod,
+                        "confidence": float(conf)
+                    } for orig, mod, conf in results
+                ],
+                "output_file_path": output_path
+            }
+        }
         
     except Exception as e:
         logger.error(f"Error: {str(e)}")
