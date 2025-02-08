@@ -3,6 +3,27 @@
 ## Overview
 This system automatically updates financial documents by matching and replacing numerical values between Excel spreadsheets and Word documents. It uses exact text matching and LLM-based verification to ensure accurate updates while maintaining document structure.
 
+## Architecture
+
+### Core Components
+1. **Document Processing**
+   - Excel Parser (`funnels/excel_utils.py`): Maps cells to headers
+   - Word Parser (`funnels/extract.py`): Extracts sentences with context
+   - Processor (`utils/document_processing/processor.py`): Orchestrates matching and updates
+
+2. **LLM Integration**
+   - Multiple Provider Support:
+     - Claude (Anthropic)
+     - Qwen (Default)
+   - Configurable timeout and model settings
+   - Handles text analysis and verification
+
+3. **Web Interface**
+   - Flask-based web application
+   - File upload/download functionality
+   - Real-time processing status
+   - Results visualization with confidence scores
+
 ## Pipeline
 1. **Data Loading**
    - Excel Parser: Maps each cell to its row and column headers
@@ -34,8 +55,9 @@ pip install -r requirements.txt
 ### Configuration
 Set up environment variables:
 ```bash
-LLM_PROVIDER=qwen  # LLM provider selection
+LLM_PROVIDER=qwen # or claude
 QWEN_API_KEY=sk-xxx  # Your API key
+CLAUDE_API_KEY=sk-xxx  # Your API key
 ```
 
 ### Running
@@ -47,12 +69,21 @@ Or use the web interface:
 ```bash
 python app.py  # Starts server on port 8080
 ```
+### Web Interface
+```bash
+python app.py # Starts server on port 8080
+```
+
+### REST API
+```bash
+python api.py # Starts server on port 8080
+```
 
 ## API Endpoints
 
 ### Document Processing
 ```
-POST /upload
+POST /run-syncspace/
 Files:
   - docx_file: Word document (.docx)
   - excel_file: Excel spreadsheet (.xlsx)
@@ -91,3 +122,12 @@ Use `eval/evaluate_accuracy.py` to measure:
 - Precision: Correct updates / Total updates
 - Recall: Found changes / Actual changes
 - F1 Score: Harmonic mean of precision and recall
+
+## Project Structure
+- `api.py`: FastAPI server for REST API
+- `app.py`: Flask server for web interface
+- `main.py`: Main processing logic
+- `utils/`: Utility functions and configuration
+- `templates/`: HTML templates for web interface
+- `static/`: Static files for web interface
+
