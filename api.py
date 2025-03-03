@@ -1,12 +1,10 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, Body
 from fastapi.responses import JSONResponse
-import shutil
-import os
-from tempfile import NamedTemporaryFile
 from main import main as process_documents
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any
+import json
 
 app = FastAPI(
     title="Document Processing API",
@@ -16,7 +14,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://numaira.app"],
+    allow_origins=["http://numaira.app", "https://api.numaira-ai.click", "http://numaira-ai.click"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,7 +29,6 @@ class Change(BaseModel):
 class ProcessingResult(BaseModel):
     number_of_changes: int
     results: List[Change]
-    output_file_path: str
 
 class SuccessResponse(BaseModel):
     status: str = "success"
@@ -41,29 +38,80 @@ class ErrorResponse(BaseModel):
     status: str = "error"
     message: str
 
+class ExcelRow(BaseModel):
+    row_header: str = Field(..., description="The header text to match in the document")
+    values: Dict[str, float] = Field(..., description="Mapping of years/columns to their values")
+
+class ExcelData(BaseModel):
+    data: List[ExcelRow] = Field(
+        ...,
+        description="List of Excel rows containing mapping data",
+        example=[
+            {
+                "row_header": "Revenue",
+                "values": {"2022": 100.0, "2023": 120.0}
+            }
+        ]
+    )
+
+class WordData(BaseModel):
+    data: Dict[str, str] = Field(
+        ...,
+        description="Dictionary mapping paragraph IDs to their text content",
+        example={
+            "paragraph1": "The revenue was $100 million in 2022.",
+            "paragraph2": "The cost was $50 million in 2022."
+        }
+    )
+
+class DocumentProcessingRequest(BaseModel):
+    excel_data: ExcelData = Field(..., description="Excel data containing the mapping information")
+    docx_data: WordData = Field(..., description="Word document data to be processed")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "excel_data": {
+                    "data": [
+                        {
+                            "row_header": "Revenue",
+                            "values": {"2022": 100.0, "2023": 120.0}
+                        }
+                    ]
+                },
+                "docx_data": {
+                    "data": {
+                        "paragraph1": "The revenue was $100 million in 2022.",
+                        "paragraph2": "The cost was $50 million in 2022."
+                    }
+                }
+            }
+        }
+
+@app.get("/health")
+async def health_check():
+    """健康检查端点，返回简单的'hello'确认API服务正常运行。"""
+    return {"message": "hello"}
+
 @app.post("/run-syncspace/", 
     response_model=SuccessResponse,
     responses={500: {"model": ErrorResponse}}
 )
 async def process_documents_endpoint(
-    docx_file: UploadFile = File(...),
-    excel_file: UploadFile = File(...)
+    request: DocumentProcessingRequest
 ):
-    tmp_docx_path = None
-    tmp_excel_path = None
+    """
+    Process documents based on Excel mapping data.
+    
+    Args:
+        request (DocumentProcessingRequest): Combined request containing both Excel and Word data
+        
+    Returns:
+        SuccessResponse: Processing results with changes made
+    """
     try:
-        # Save uploaded DOCX file to a temporary file
-        with NamedTemporaryFile(delete=False, suffix='.docx') as tmp_docx:
-            shutil.copyfileobj(docx_file.file, tmp_docx)
-            tmp_docx_path = tmp_docx.name
-            
-        # Save uploaded Excel file to a temporary file
-        with NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_excel:
-            shutil.copyfileobj(excel_file.file, tmp_excel)
-            tmp_excel_path = tmp_excel.name
-
-        # Process the documents
-        result = process_documents(tmp_docx_path, tmp_excel_path)
+        # Process the documents with data received directly
+        result = process_documents(request.docx_data.data, request.excel_data.data)
         
         return JSONResponse(content=result)
         
@@ -75,12 +123,6 @@ async def process_documents_endpoint(
                 "message": str(e)
             }
         )
-    finally:
-        # Ensure temporary files are removed even if an error occurs
-        if tmp_docx_path and os.path.exists(tmp_docx_path):
-            os.unlink(tmp_docx_path)
-        if tmp_excel_path and os.path.exists(tmp_excel_path):
-            os.unlink(tmp_excel_path)
 
 if __name__ == "__main__":
     import uvicorn

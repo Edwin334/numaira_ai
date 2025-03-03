@@ -51,6 +51,22 @@ def excel_to_list(excel_path: str) -> List[Dict[str, Any]]:
                 })
         
         return metrics
+        '''
+        metrics format is for examole:
+        [{"row_header": "Revenue",
+                        "values":{
+                                "2022":100,
+                                "2023":120
+                                }
+        },
+        {"row_header": "Cost",
+                        "values":{
+                                "2022":50,
+                                "2023":60
+                                }
+        }]
+        
+        '''
         
     except Exception as e:
         print(f"Error reading Excel file: {str(e)}")

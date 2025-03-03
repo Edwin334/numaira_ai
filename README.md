@@ -1,4 +1,5 @@
 # Financial Document Update Pipeline
+This doc covers the AI functionality. For the AI documentation, go to the api markdown document.
 
 ## Overview
 This system automatically updates financial documents by matching and replacing numerical values between Excel spreadsheets and Word documents. It uses exact text matching and LLM-based verification to ensure accurate updates while maintaining document structure.
